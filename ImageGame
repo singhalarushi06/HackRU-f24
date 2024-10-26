@@ -25,7 +25,7 @@ public class ImageGame {
     private String[] answeredImages;
     private int inputIndex;
     private int currentIndex;
-    private final int IMAGE_COUNT = 10;
+    private final int IMAGE_COUNT = 11;
 
     public static void main(String[] args) {
         ImageGame game = new ImageGame();
