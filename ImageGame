@@ -12,9 +12,16 @@ import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
-
+/**
+ * ImageGame - A game that replaces the previous ColorGame with images.
+ * Images are loaded from a CSV file, displayed around a circle, and a random
+ * image appears in the middle. The player must match sequences of images.
+ * 
+ * Author: Your Name
+ */
 public class ImageGame {
 
+    // List to hold images loaded from the CSV file
     private List<ImageIcon> images;
     private ImageIcon displayedImage;
     private ImageGameDisplay gameDisplay;
@@ -25,20 +32,22 @@ public class ImageGame {
     private String[] answeredImages;
     private int inputIndex;
     private int currentIndex;
-    private final int IMAGE_COUNT = 11;
+    private final int IMAGE_COUNT = 11; // Total number of sections around the circle
 
     public static void main(String[] args) {
         ImageGame game = new ImageGame();
         SwingUtilities.invokeLater(() -> game.Driver());
     }
 
+    // Constructor
     public ImageGame() {
-        images = loadImagesFromCSV("./src/wqu/images.csv"); 
+        images = loadImagesFromCSV("./src/wqu/images.csv"); // Load images from CSV
         if (images.size() < IMAGE_COUNT) {
             System.out.println("Not enough images loaded for display. Ensure the CSV has at least 10 images.");
         }
     }
 
+    // Method to load images from a CSV file
     private List<ImageIcon> loadImagesFromCSV(String filePath) {
         List<ImageIcon> images = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
@@ -52,29 +61,33 @@ public class ImageGame {
         return images;
     }
 
+    // Class to handle the game display
     private class ImageGameDisplay extends JPanel {
         private BufferedImage background;
 
         public ImageGameDisplay() {
             super();
             try {
-                background = ImageIO.read(new File("./src/wqu/Background.jpg")); 
+                background = ImageIO.read(new File("./src/wqu/Background.jpg")); // Optional background image
             } catch (Exception io) {
                 System.out.println(io.getMessage());
                 System.out.println("Error Reading Background.jpg image.");
             }
             setupDisplay();
-            this.setPreferredSize(new Dimension(500, 500));
+            this.setPreferredSize(new Dimension(500, 500)); // Adjust panel size as needed
         }
 
+        // Set up the images around the circle
         private void setupDisplay() {
             if (images.size() < IMAGE_COUNT) return;
 
+            // Adjust positions for the circular layout
             for (int i = 0; i < IMAGE_COUNT; i++) {
                 int angle = (360 / IMAGE_COUNT) * i;
-                int x = (int) (Math.cos(Math.toRadians(angle)) * 150) + 200; 
-                int y = (int) (Math.sin(Math.toRadians(angle)) * 150) + 200; 
+                int x = (int) (Math.cos(Math.toRadians(angle)) * 150) + 200; // Circle radius and x offset
+                int y = (int) (Math.sin(Math.toRadians(angle)) * 150) + 200; // Circle radius and y offset
 
+                // Adjust display as needed, this can be part of a custom drawing method
             }
         }
 
@@ -85,24 +98,28 @@ public class ImageGame {
                 g.drawImage(background, 0, 0, this);
             }
 
+            // Draw images around the circle
             for (int i = 0; i < images.size(); i++) {
                 ImageIcon icon = images.get(i);
                 int angle = (360 / IMAGE_COUNT) * i;
                 int x = (int) (Math.cos(Math.toRadians(angle)) * 150) + 200;
                 int y = (int) (Math.sin(Math.toRadians(angle)) * 150) + 200;
-                g.drawImage(icon.getImage(), x, y, 50, 50, this); 
+                g.drawImage(icon.getImage(), x, y, 50, 50, this); // Image size is 50x50
             }
 
+            // Draw the displayed image in the center
             if (displayedImage != null) {
-                g.drawImage(displayedImage.getImage(), 200, 200, 100, 100, this); 
+                g.drawImage(displayedImage.getImage(), 200, 200, 100, 100, this); // Center image size 100x100
             }
         }
     }
 
+    // Main game logic
     public void playGame() {
         correctImages = new String[15];
         answeredImages = new String[15];
 
+        // Randomly choose images for the sequence
         for (int index = 0; index < 15; index++) {
             int rand = (int) (Math.random() * images.size());
             correctImages[index] = images.get(rand).toString();
@@ -112,6 +129,7 @@ public class ImageGame {
             }
         }
 
+        // Display the sequence of images for the player
         for (int max = 1; max < 20; max++) {
             for (int round = 0; round < max; round++) {
                 int select = round;
@@ -166,6 +184,7 @@ public class ImageGame {
         });
     }
 
+    // Driver to launch the game interface
     public void Driver() {
         JFrame display = new JFrame("Image Game");
         display.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
