@@ -46,13 +46,51 @@ public class ImageGame {
     }
 
     // Method to load images from a folder of images
-    private List<ImageIcon> loadImages(String filePath) {
-        List<ImageIcon> images = new ArrayList<>();
-        // write code here
+    // Method to load images from a folder of images
+private List<ImageIcon> loadImages(String folderPath) {
+    List<ImageIcon> images = new ArrayList<>();
+    File folder = new File(folderPath);
 
+    // Check if the folder exists and is a directory
+    if (folder.exists() && folder.isDirectory()) {
+        // Get all files in the directory
+        File[] files = folder.listFiles();
 
-        return images;
+        if (files != null) {
+            for (File file : files) {
+                // Check if the file is an image by extension
+                if (file.isFile() && isImageFile(file)) {
+                    try {
+                        // Load the image and add it to the list as an ImageIcon
+                        ImageIcon imageIcon = new ImageIcon(ImageIO.read(file));
+                        images.add(imageIcon);
+                    } catch (IOException e) {
+                        System.out.println("Error loading image: " + file.getName());
+                    }
+                }
+            }
+        }
+    } else {
+        System.out.println("Invalid folder path or folder does not exist: " + folderPath);
     }
+
+    return images;
+}
+
+// Helper method to check if a file is an image
+private boolean isImageFile(File file) {
+    // Simple extension check to filter common image types
+    String[] imageExtensions = { ".png", ".jpg", ".jpeg", ".gif", ".bmp" };
+    String fileName = file.getName().toLowerCase();
+
+    for (String extension : imageExtensions) {
+        if (fileName.endsWith(extension)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 
     // Class to handle the game display
     private class ImageGameDisplay extends JPanel {
