@@ -1,4 +1,4 @@
-package wqu;
+package src.wqu;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -13,16 +13,14 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 
 /**
- * ImageGame - A game that uses images instead of colors.
- * Images are loaded from a CSV file, displayed in a 2x5 grid at the top of the screen,
- * and a random image appears in the middle of the bottom half.
- * 
- * Author: Your Name
+ * Images are loaded from a CSV file, and displayed in a grid.
+ * A random image appears in the middle.
+ * The player must match sequences of images.
  */
 public class ImageGame {
-
-    // List to hold images loaded from the CSV file
+    // List holding images loaded from the CSV file
     private List<ImageIcon> images;
+
     private ImageIcon displayedImage;
     private ImageGameDisplay gameDisplay;
     private JButton playButton;
@@ -32,7 +30,7 @@ public class ImageGame {
     private String[] answeredImages;
     private int inputIndex;
     private int currentIndex;
-    private final int IMAGE_COUNT = 10; // Total number of images for the grid
+    private final int IMAGE_COUNT = 10; // Total number of images in the grid
 
     public static void main(String[] args) {
         ImageGame game = new ImageGame();
@@ -40,8 +38,8 @@ public class ImageGame {
     }
 
     // Constructor
-    public ImageGame() {
-        images = loadImagesFromCSV("./src/wqu/images.csv"); // Load images from CSV
+     public ImageGame() {
+        images = loadImagesFromCSV("./src/wqu/objects.csv"); // Load images from CSV
         if (images.size() < IMAGE_COUNT) {
             System.out.println("Not enough images loaded for display. Ensure the CSV has at least 10 images.");
         }
@@ -68,10 +66,10 @@ public class ImageGame {
         public ImageGameDisplay() {
             super();
             try {
-                background = ImageIO.read(new File("./src/wqu/Background.jpg")); // Optional background image
+                background = ImageIO.read(new File("./src/wqu/images/background.png")); // Optional background image
             } catch (Exception io) {
                 System.out.println(io.getMessage());
-                System.out.println("Error Reading Background.jpg image.");
+                System.out.println("Error Reading background.png image.");
             }
             setupDisplay();
             this.setPreferredSize(new Dimension(500, 500)); // Adjust panel size as needed
@@ -182,6 +180,7 @@ public class ImageGame {
     }
 
     // Driver to launch the game interface
+    // display with a window, some controls, start button, and text showing progress
     public void Driver() {
         JFrame display = new JFrame("Image Game");
         display.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
