@@ -39,23 +39,18 @@ public class ImageGame {
 
     // Constructor
      public ImageGame() {
-        images = loadImagesFromCSV("./src/wqu/objects.csv"); // Load images from CSV
+        images = loadImages("./src/wqu/images"); // Load images from CSV
         if (images.size() < IMAGE_COUNT) {
             System.out.println("Not enough images loaded for display. Ensure the CSV has at least 10 images.");
         }
     }
 
-    // Method to load images from a CSV file
-    private List<ImageIcon> loadImagesFromCSV(String filePath) {
+    // Method to load images from a folder of images
+    private List<ImageIcon> loadImages(String filePath) {
         List<ImageIcon> images = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                images.add(new ImageIcon(line.trim()));
-            }
-        } catch (IOException e) {
-            System.out.println("Error loading images: " + e.getMessage());
-        }
+        // write code here
+
+
         return images;
     }
 
@@ -66,7 +61,7 @@ public class ImageGame {
         public ImageGameDisplay() {
             super();
             try {
-                background = ImageIO.read(new File("./src/wqu/images/background.png")); // Optional background image
+                background = ImageIO.read(new File("./src/wqu/background.png")); // Optional background image
             } catch (Exception io) {
                 System.out.println(io.getMessage());
                 System.out.println("Error Reading background.png image.");
