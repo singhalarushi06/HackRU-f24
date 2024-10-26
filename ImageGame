@@ -1,0 +1,204 @@
+package wqu;
+
+import java.awt.*;
+import java.awt.event.*;
+import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import javax.imageio.ImageIO;
+import javax.swing.*;
+
+
+public class ImageGame {
+
+    private List<ImageIcon> images;
+    private ImageIcon displayedImage;
+    private ImageGameDisplay gameDisplay;
+    private JButton playButton;
+    private JLabel statusText;
+    private JLabel highScoreLabel;
+    private String[] correctImages;
+    private String[] answeredImages;
+    private int inputIndex;
+    private int currentIndex;
+    private final int IMAGE_COUNT = 10;
+
+    public static void main(String[] args) {
+        ImageGame game = new ImageGame();
+        SwingUtilities.invokeLater(() -> game.Driver());
+    }
+
+    public ImageGame() {
+        images = loadImagesFromCSV("./src/wqu/images.csv"); 
+        if (images.size() < IMAGE_COUNT) {
+            System.out.println("Not enough images loaded for display. Ensure the CSV has at least 10 images.");
+        }
+    }
+
+    private List<ImageIcon> loadImagesFromCSV(String filePath) {
+        List<ImageIcon> images = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                images.add(new ImageIcon(line.trim()));
+            }
+        } catch (IOException e) {
+            System.out.println("Error loading images: " + e.getMessage());
+        }
+        return images;
+    }
+
+    private class ImageGameDisplay extends JPanel {
+        private BufferedImage background;
+
+        public ImageGameDisplay() {
+            super();
+            try {
+                background = ImageIO.read(new File("./src/wqu/Background.jpg")); 
+            } catch (Exception io) {
+                System.out.println(io.getMessage());
+                System.out.println("Error Reading Background.jpg image.");
+            }
+            setupDisplay();
+            this.setPreferredSize(new Dimension(500, 500));
+        }
+
+        private void setupDisplay() {
+            if (images.size() < IMAGE_COUNT) return;
+
+            for (int i = 0; i < IMAGE_COUNT; i++) {
+                int angle = (360 / IMAGE_COUNT) * i;
+                int x = (int) (Math.cos(Math.toRadians(angle)) * 150) + 200; 
+                int y = (int) (Math.sin(Math.toRadians(angle)) * 150) + 200; 
+
+            }
+        }
+
+        @Override
+        public void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            if (background != null) {
+                g.drawImage(background, 0, 0, this);
+            }
+
+            for (int i = 0; i < images.size(); i++) {
+                ImageIcon icon = images.get(i);
+                int angle = (360 / IMAGE_COUNT) * i;
+                int x = (int) (Math.cos(Math.toRadians(angle)) * 150) + 200;
+                int y = (int) (Math.sin(Math.toRadians(angle)) * 150) + 200;
+                g.drawImage(icon.getImage(), x, y, 50, 50, this); 
+            }
+
+            if (displayedImage != null) {
+                g.drawImage(displayedImage.getImage(), 200, 200, 100, 100, this); 
+            }
+        }
+    }
+
+    public void playGame() {
+        correctImages = new String[15];
+        answeredImages = new String[15];
+
+        for (int index = 0; index < 15; index++) {
+            int rand = (int) (Math.random() * images.size());
+            correctImages[index] = images.get(rand).toString();
+            while (index > 0 && correctImages[index].equals(correctImages[index - 1])) {
+                rand = (int) (Math.random() * images.size());
+                correctImages[index] = images.get(rand).toString();
+            }
+        }
+
+        for (int max = 1; max < 20; max++) {
+            for (int round = 0; round < max; round++) {
+                int select = round;
+                displayedImage = images.get(Integer.parseInt(correctImages[select]));
+                gameDisplay.revalidate();
+                gameDisplay.repaint();
+                try {
+                    Thread.sleep(800);
+                    displayedImage = null;
+                    gameDisplay.revalidate();
+                    gameDisplay.repaint();
+                } catch (InterruptedException ie) {
+                    System.out.println(ie.getMessage());
+                }
+            }
+
+            inputIndex = 0;
+            currentIndex = -1;
+            long startWaitTime = System.currentTimeMillis();
+            while (inputIndex < max) {
+                long currTime = System.currentTimeMillis();
+                long seconds = currTime - startWaitTime;
+                if (currentIndex == inputIndex) {
+                    if (!correctImages[inputIndex].equals(answeredImages[inputIndex])) {
+                        inputIndex = 0;
+                        currentIndex = -1;
+                        SwingUtilities.invokeLater(() -> {
+                            statusText.setText("You Lose!");
+                            playButton.setVisible(true);
+                        });
+                        return;
+                    }
+                    startWaitTime = System.currentTimeMillis();
+                    inputIndex++;
+                } else if (seconds > 2500) {
+                    SwingUtilities.invokeLater(() -> {
+                        statusText.setText("You Lose!");
+                        playButton.setVisible(true);
+                    });
+                    return;
+                }
+            }
+            answeredImages = new String[15];
+            if (max > Integer.parseInt(highScoreLabel.getText())) {
+                int high = max;
+                SwingUtilities.invokeLater(() -> highScoreLabel.setText("" + high));
+            }
+        }
+        SwingUtilities.invokeLater(() -> {
+            statusText.setText("You Win!");
+            playButton.setVisible(true);
+        });
+    }
+
+    public void Driver() {
+        JFrame display = new JFrame("Image Game");
+        display.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        JPanel window = new JPanel();
+        window.setLayout(new BoxLayout(window, BoxLayout.PAGE_AXIS));
+
+        JPanel controls = new JPanel();
+        gameDisplay = new ImageGameDisplay();
+
+        playButton = new JButton("Play!");
+        statusText = new JLabel("");
+        highScoreLabel = new JLabel("0");
+
+        playButton.addActionListener(e -> {
+            SwingUtilities.invokeLater(() -> {
+                statusText.setText("");
+                playButton.setVisible(false);
+            });
+            new Thread(this::playGame).start();
+        });
+
+        controls.add(new JLabel("High Score: "));
+        controls.add(highScoreLabel);
+        controls.add(playButton);
+        controls.add(statusText);
+
+        window.add(controls);
+        window.add(gameDisplay);
+
+        display.add(window);
+        display.pack();
+        display.setResizable(false);
+        display.setVisible(true);
+    }
+}
