@@ -13,9 +13,9 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 
 /**
- * ImageGame - A game that replaces the previous ColorGame with images.
- * Images are loaded from a CSV file, displayed around a circle, and a random
- * image appears in the middle. The player must match sequences of images.
+ * ImageGame - A game that uses images instead of colors.
+ * Images are loaded from a CSV file, displayed in a 2x5 grid at the top of the screen,
+ * and a random image appears in the middle of the bottom half.
  * 
  * Author: Your Name
  */
@@ -32,7 +32,7 @@ public class ImageGame {
     private String[] answeredImages;
     private int inputIndex;
     private int currentIndex;
-    private final int IMAGE_COUNT = 11; // Total number of sections around the circle
+    private final int IMAGE_COUNT = 10; // Total number of images for the grid
 
     public static void main(String[] args) {
         ImageGame game = new ImageGame();
@@ -77,18 +77,9 @@ public class ImageGame {
             this.setPreferredSize(new Dimension(500, 500)); // Adjust panel size as needed
         }
 
-        // Set up the images around the circle
+        // Set up the grid display for the images
         private void setupDisplay() {
             if (images.size() < IMAGE_COUNT) return;
-
-            // Adjust positions for the circular layout
-            for (int i = 0; i < IMAGE_COUNT; i++) {
-                int angle = (360 / IMAGE_COUNT) * i;
-                int x = (int) (Math.cos(Math.toRadians(angle)) * 150) + 200; // Circle radius and x offset
-                int y = (int) (Math.sin(Math.toRadians(angle)) * 150) + 200; // Circle radius and y offset
-
-                // Adjust display as needed, this can be part of a custom drawing method
-            }
         }
 
         @Override
@@ -98,18 +89,24 @@ public class ImageGame {
                 g.drawImage(background, 0, 0, this);
             }
 
-            // Draw images around the circle
+            // Draw images in a 2x5 grid at the top of the screen
+            int imageWidth = 90;  // Width of each image compartment
+            int imageHeight = 90; // Height of each image compartment
+            int xOffset = 30;     // Horizontal offset for grid start
+            int yOffset = 20;     // Vertical offset for grid start
+
             for (int i = 0; i < images.size(); i++) {
                 ImageIcon icon = images.get(i);
-                int angle = (360 / IMAGE_COUNT) * i;
-                int x = (int) (Math.cos(Math.toRadians(angle)) * 150) + 200;
-                int y = (int) (Math.sin(Math.toRadians(angle)) * 150) + 200;
-                g.drawImage(icon.getImage(), x, y, 50, 50, this); // Image size is 50x50
+                int x = xOffset + (i % 5) * (imageWidth + 10); // Calculate x position in the grid
+                int y = yOffset + (i / 5) * (imageHeight + 10); // Calculate y position in the grid
+                g.drawImage(icon.getImage(), x, y, imageWidth, imageHeight, this);
             }
 
-            // Draw the displayed image in the center
+            // Draw the displayed image in the center of the bottom half of the screen
             if (displayedImage != null) {
-                g.drawImage(displayedImage.getImage(), 200, 200, 100, 100, this); // Center image size 100x100
+                int centerX = 200;
+                int centerY = 300;
+                g.drawImage(displayedImage.getImage(), centerX, centerY, 100, 100, this); // Center image size 100x100
             }
         }
     }
