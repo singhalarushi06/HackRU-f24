@@ -18,6 +18,7 @@ import javax.swing.*;
 public class ImageGame {
     // List holding images loaded from the folder
     private List<ImageIcon> images;
+    private List<String> gridImageNames = new ArrayList<>();
     private ImageIcon displayedImage;
     private ImageGameDisplay gameDisplay;
     private JButton playButton;
@@ -123,9 +124,10 @@ public class ImageGame {
         }
 
         private void handleImageClick(int index) {
-            // Use the image file name for comparison
-            String clickedImageName = images.get(index).toString();
+            // Get the name of the clicked image based on grid position
+            String clickedImageName = gridImageNames.get(index);
         
+            // Record the answer and compare
             answeredImages[inputIndex] = clickedImageName;
             currentIndex = inputIndex;
         
@@ -139,10 +141,8 @@ public class ImageGame {
         
             gameDisplay.revalidate();
             gameDisplay.repaint();
-        }
+        }        
         
-
-
         @Override
         public void paintComponent(Graphics g) {
             super.paintComponent(g);
@@ -157,13 +157,19 @@ public class ImageGame {
             int yOffset = 7;     // Vertical offset for grid start
 
 
+            gridImageNames.clear();  // Clear previous data if redrawing
+
             for (int i = 0; i < images.size(); i++) {
                 ImageIcon icon = images.get(i);
                 int x = xOffset + (i % 5) * (imageWidth + 15); // Calculate x position in the grid
                 int y = yOffset + (i / 5) * (imageHeight + 10); // Calculate y position in the grid
-                g.drawImage(icon.getImage(), x, y, imageWidth, imageHeight, this);
-            }
 
+                // Draw the image
+                g.drawImage(icon.getImage(), x, y, imageWidth, imageHeight, this);
+
+                // Store image name based on grid position
+                gridImageNames.add(icon.toString());  // This should match the correct images      
+            }
 
             // Draw the displayed image in the center of the bottom half of the screen
             if (displayedImage != null) {
