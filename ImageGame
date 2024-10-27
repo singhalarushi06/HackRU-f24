@@ -105,7 +105,7 @@ private boolean isImageFile(File file) {
                 System.out.println("Error Reading background.png image.");
             }
             setupDisplay();
-            this.setPreferredSize(new Dimension(500, 500)); // Adjust panel size as needed
+            this.setPreferredSize(new Dimension(550, 500)); // Adjust panel size as needed
         }
 
         // Set up the grid display for the images
@@ -185,7 +185,7 @@ private boolean isImageFile(File file) {
                         inputIndex = 0;
                         currentIndex = -1;
                         SwingUtilities.invokeLater(() -> {
-                            statusText.setText("You Lose!");
+                            statusText.setText("Game Over!");
                             playButton.setVisible(true);
                         });
                         return;
