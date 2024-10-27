@@ -3,9 +3,7 @@ package src.wqu;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,14 +11,13 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 
 /**
- * Images are loaded from a CSV file, and displayed in a grid.
+ * Images are loaded from a folder, and displayed in a grid.
  * A random image appears in the middle.
  * The player must match sequences of images.
  */
 public class ImageGame {
-    // List holding images loaded from the CSV file
+    // List holding images loaded from the folder
     private List<ImageIcon> images;
-
     private ImageIcon displayedImage;
     private ImageGameDisplay gameDisplay;
     private JButton playButton;
@@ -38,59 +35,36 @@ public class ImageGame {
     }
 
     // Constructor
-     public ImageGame() {
-        images = loadImages("./src/wqu/images"); // Load images from CSV
+    public ImageGame() {
+        images = loadImages("./src/wqu/images"); // Load images from folder
         if (images.size() < IMAGE_COUNT) {
-            System.out.println("Not enough images loaded for display. Ensure the CSV has at least 10 images.");
+            System.out.println("Not enough images loaded for display. Ensure the folder has at least 10 images.");
         }
     }
 
     // Method to load images from a folder of images
-    // Method to load images from a folder of images
-private List<ImageIcon> loadImages(String folderPath) {
-    List<ImageIcon> images = new ArrayList<>();
-    File folder = new File(folderPath);
-
-    // Check if the folder exists and is a directory
-    if (folder.exists() && folder.isDirectory()) {
-        // Get all files in the directory
+    private List<ImageIcon> loadImages(String filePath) {
+        List<ImageIcon> images = new ArrayList<>();
+        File folder = new File(filePath);
         File[] files = folder.listFiles();
 
         if (files != null) {
             for (File file : files) {
-                // Check if the file is an image by extension
-                if (file.isFile() && isImageFile(file)) {
-                    try {
-                        // Load the image and add it to the list as an ImageIcon
-                        ImageIcon imageIcon = new ImageIcon(ImageIO.read(file));
-                        images.add(imageIcon);
-                    } catch (IOException e) {
-                        System.out.println("Error loading image: " + file.getName());
-                    }
+                try {
+                    ImageIcon icon = new ImageIcon(ImageIO.read(file));
+                    images.add(icon);
+                } catch (IOException e) {
+                    System.out.println("Error loading image: " + file.getName() + " - " + e.getMessage());
                 }
             }
+        } else {
+            System.out.println("No images found in folder: " + filePath);
         }
-    } else {
-        System.out.println("Invalid folder path or folder does not exist: " + folderPath);
+
+        // Debug: Print the number of images loaded
+        System.out.println("Loaded " + images.size() + " images from the folder.");
+        return images;
     }
-
-    return images;
-}
-
-// Helper method to check if a file is an image
-private boolean isImageFile(File file) {
-    // Simple extension check to filter common image types
-    String[] imageExtensions = { ".png", ".jpg", ".jpeg", ".gif", ".bmp" };
-    String fileName = file.getName().toLowerCase();
-
-    for (String extension : imageExtensions) {
-        if (fileName.endsWith(extension)) {
-            return true;
-        }
-    }
-    return false;
-}
-
 
     // Class to handle the game display
     private class ImageGameDisplay extends JPanel {
@@ -99,19 +73,75 @@ private boolean isImageFile(File file) {
         public ImageGameDisplay() {
             super();
             try {
-                background = ImageIO.read(new File("./src/wqu/background.png")); // Optional background image
+                background = ImageIO.read(new File("./src/wqu/background2.png")); // Optional background image
             } catch (Exception io) {
                 System.out.println(io.getMessage());
-                System.out.println("Error Reading background.png image.");
+                System.out.println("Error Reading background2.png image.");
             }
             setupDisplay();
-            this.setPreferredSize(new Dimension(550, 500)); // Adjust panel size as needed
+            this.setPreferredSize(new Dimension(500, 500)); // Adjust panel size as needed
         }
 
         // Set up the grid display for the images
         private void setupDisplay() {
             if (images.size() < IMAGE_COUNT) return;
+
+            setLayout(null); // Using absolute layout for custom positioning
+
+            int imageWidth = 87;  // Width of each image compartment
+            int imageHeight = 87; // Height of each image compartment
+            int xOffset = 10;     // Horizontal offset for grid start
+            int yOffset = 7;      // Vertical offset for grid start
+
+
+            for (int i = 0; i < images.size(); i++) {
+                // Get original icon and scale it to the compartment size
+                ImageIcon originalIcon = images.get(i);
+                Image scaledImage = originalIcon.getImage().getScaledInstance(imageWidth, imageHeight, Image.SCALE_SMOOTH);
+                ImageIcon scaledIcon = new ImageIcon(scaledImage);
+            
+                JLabel imageLabel = new JLabel(scaledIcon);
+                imageLabel.setBounds(
+                    xOffset + (i % 5) * (imageWidth + 15), // Calculate x position in the grid
+                    yOffset + (i / 5) * (imageHeight + 10), // Calculate y position in the grid
+                    imageWidth,
+                    imageHeight
+                );
+            
+                // Add a mouse listener to handle clicks
+                final int index = i;
+                imageLabel.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        handleImageClick(index); // Handle image click
+                    }
+                });
+            
+                // Add the image label to the panel
+                add(imageLabel);
+            }
         }
+
+        private void handleImageClick(int index) {
+            // Use the image file name for comparison
+            String clickedImageName = images.get(index).toString();
+        
+            answeredImages[inputIndex] = clickedImageName;
+            currentIndex = inputIndex;
+        
+            // Compare using the correct image file name
+            if (correctImages[inputIndex].equals(clickedImageName)) {
+                statusText.setText("Correct!");
+                inputIndex++;
+            } else {
+                statusText.setText("Incorrect!");
+            }
+        
+            gameDisplay.revalidate();
+            gameDisplay.repaint();
+        }
+        
+
 
         @Override
         public void paintComponent(Graphics g) {
@@ -121,23 +151,28 @@ private boolean isImageFile(File file) {
             }
 
             // Draw images in a 2x5 grid at the top of the screen
-            int imageWidth = 90;  // Width of each image compartment
-            int imageHeight = 90; // Height of each image compartment
-            int xOffset = 30;     // Horizontal offset for grid start
-            int yOffset = 20;     // Vertical offset for grid start
+            int imageWidth = 87;  // Width of each image compartment
+            int imageHeight = 87; // Height of each image compartment
+            int xOffset = 10;     // Horizontal offset for grid start
+            int yOffset = 7;     // Vertical offset for grid start
+
 
             for (int i = 0; i < images.size(); i++) {
                 ImageIcon icon = images.get(i);
-                int x = xOffset + (i % 5) * (imageWidth + 10); // Calculate x position in the grid
+                int x = xOffset + (i % 5) * (imageWidth + 15); // Calculate x position in the grid
                 int y = yOffset + (i / 5) * (imageHeight + 10); // Calculate y position in the grid
                 g.drawImage(icon.getImage(), x, y, imageWidth, imageHeight, this);
             }
 
+
             // Draw the displayed image in the center of the bottom half of the screen
             if (displayedImage != null) {
-                int centerX = 200;
-                int centerY = 300;
+                System.out.println("Painting central image."); // Debug statement
+                int centerX = (getWidth() - 100) / 2;  // Centered horizontally
+                int centerY = (getHeight() - 200) / 2 + getHeight() / 4; // Bottom half of the screen
                 g.drawImage(displayedImage.getImage(), centerX, centerY, 100, 100, this); // Center image size 100x100
+            } else {
+                System.out.println("No central image to paint."); // Debug statement
             }
         }
     }
@@ -150,18 +185,26 @@ private boolean isImageFile(File file) {
         // Randomly choose images for the sequence
         for (int index = 0; index < 15; index++) {
             int rand = (int) (Math.random() * images.size());
-            correctImages[index] = images.get(rand).toString();
+            correctImages[index] = Integer.toString(rand);
+
+            // Debug: Check the selected image
+            System.out.println("Selected image for sequence index " + index + ": " + correctImages[index]);
+
             while (index > 0 && correctImages[index].equals(correctImages[index - 1])) {
                 rand = (int) (Math.random() * images.size());
-                correctImages[index] = images.get(rand).toString();
+                correctImages[index] = Integer.toString(rand);
             }
         }
 
         // Display the sequence of images for the player
-        for (int max = 1; max < 20; max++) {
+        for (int max = 1; max < 15; max++) {
             for (int round = 0; round < max; round++) {
                 int select = round;
-                displayedImage = images.get(Integer.parseInt(correctImages[select]));
+                displayedImage = images.get(Integer.parseInt(correctImages[select]) % images.size());
+
+                // Debug: Check if the central image is set properly
+                System.out.println("Displaying image in the center: " + correctImages[select]);
+
                 gameDisplay.revalidate();
                 gameDisplay.repaint();
                 try {
@@ -170,7 +213,7 @@ private boolean isImageFile(File file) {
                     gameDisplay.revalidate();
                     gameDisplay.repaint();
                 } catch (InterruptedException ie) {
-                    System.out.println(ie.getMessage());
+                    System.out.println("Error during image display delay: " + ie.getMessage());
                 }
             }
 
@@ -185,14 +228,14 @@ private boolean isImageFile(File file) {
                         inputIndex = 0;
                         currentIndex = -1;
                         SwingUtilities.invokeLater(() -> {
-                            statusText.setText("Game Over!");
+                            statusText.setText("You Lose!");
                             playButton.setVisible(true);
                         });
                         return;
                     }
                     startWaitTime = System.currentTimeMillis();
                     inputIndex++;
-                } else if (seconds > 2500) {
+                } else if (seconds > 5000) {
                     SwingUtilities.invokeLater(() -> {
                         statusText.setText("You Lose!");
                         playButton.setVisible(true);
@@ -250,3 +293,4 @@ private boolean isImageFile(File file) {
         display.setVisible(true);
     }
 }
+
